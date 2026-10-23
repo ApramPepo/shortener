@@ -67,6 +67,7 @@ public class Bucket4jRateLimitFilter extends OncePerRequestFilter /*Executes onc
         String path = request.getRequestURI();
         if(path.startsWith("/actuator") || path.startsWith("/swagger") || path.startsWith("/api-docs") || path.startsWith("/v3/api-docs")) {
             filterChain.doFilter(request, response);
+            return;
         }
 
         String clientIp = extractClientIp(request);
@@ -88,7 +89,7 @@ public class Bucket4jRateLimitFilter extends OncePerRequestFilter /*Executes onc
     }
 
     private String extractClientIp(HttpServletRequest request) {
-        String xForwardFor = request.getHeader("X-Forward-For");
+        String xForwardFor = request.getHeader("X-Forwarded-For");
         if(xForwardFor != null && !xForwardFor.isBlank()) {
             return xForwardFor.split(",")[0].trim();
         }
