@@ -31,6 +31,8 @@ jobs:
         run: |
           echo "Waiting for Spring Boot backend to signal UP status..."
           timeout 60s bash -c 'until curl -s http://localhost:8085/actuator/health | grep "UP"; do sleep 2; done'
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
 
       - name: Run K6 Test
         uses: grafana/run-k6-action@v1
