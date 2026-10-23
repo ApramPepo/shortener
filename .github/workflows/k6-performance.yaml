@@ -1,0 +1,42 @@
+name: K6 Performance & Integration Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build Backend JAR
+        run: ./mvnw clean package -DskipTests
+
+      - name: Spin Up Docker Stack
+        run: docker compose up --build -d
+
+      - name: Wait for Backend to be Healthy
+        run: |
+          echo "Waiting for Spring Boot backend to signal UP status..."
+          timeout 60s bash -c 'until curl -s http://localhost:8085/actuator/health | grep "UP"; do sleep 2; done'
+
+      - name: Run K6 Test
+        uses: grafana/run-k6-action@v1
+        with:
+          path: ./k6/shortener.js
+
+      - name: Teardown Environment
+        if: always()
+        run: docker compose down -v

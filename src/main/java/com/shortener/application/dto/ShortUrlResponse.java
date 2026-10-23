@@ -1,4 +1,11 @@
 package com.shortener.application.dto;
 
-public class ShortUrlResponse {
-}
+import java.time.Instant;
+
+public record ShortUrlResponse (
+        String shortCode,
+        String shortUrl,
+        String originalUrl,
+        Instant createdAt,
+        long clickCount
+) {}
