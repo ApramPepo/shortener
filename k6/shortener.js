@@ -3,6 +3,31 @@ import { check, sleep } from 'k6';
 
 const baseUrl = (__ENV.BASE_URL || 'http://localhost:8085').replace(/\/+$/, '');
 const vus = Number(__ENV.VUS || 5);
+const maxLoggedBodyLength = 300;
+
+function logRequestFailure(operation, response, reason) {
+  const rateLimitHeaders = {};
+  for (const [name, value] of Object.entries(response.headers || {})) {
+    if (/^(retry-after|x-rate-limit-(limit|remaining)|ratelimit(-.*)?)$/i.test(name)) {
+      rateLimitHeaders[name] = value;
+    }
+  }
+
+  const body = String(response.body || '').replace(/\s+/g, ' ').trim();
+  console.error(
+    `k6 request failure ${JSON.stringify({
+      operation,
+      status: response.status,
+      reason,
+      vu: __VU,
+      iteration: __ITER,
+      rateLimitHeaders,
+      body: body.length > maxLoggedBodyLength
+        ? `${body.slice(0, maxLoggedBodyLength)}...`
+        : body,
+    })}`,
+  );
+}
 
 export const options = {
   stages: [
@@ -65,6 +90,7 @@ export default function () {
     },
   });
   if (!createPassed) {
+    logRequestFailure('create', createResponse, 'expected HTTP 201 with a valid shortCode and shortUrl');
     sleep(1);
     return;
   }
@@ -93,6 +119,7 @@ export default function () {
     },
   });
   if (!statsPassed) {
+    logRequestFailure('stats', initialStats, 'expected HTTP 200 with a valid JSON response');
     sleep(1);
     return;
   }
@@ -106,16 +133,19 @@ export default function () {
     tags: { operation: 'redirect' },
     timeout: '10s',
   });
-  check(redirectResponse, {
+  const redirectPassed = check(redirectResponse, {
     'redirect returns 302': (r) => r.status === 302,
     'redirect location matches original URL': (r) => r.headers.Location === originalUrl,
   });
+  if (!redirectPassed) {
+    logRequestFailure('redirect', redirectResponse, 'expected HTTP 302 with the original URL in Location');
+  }
 
   const updatedStats = http.get(statsUrl, {
     tags: { operation: 'stats' },
     timeout: '10s',
   });
-  check(updatedStats, {
+  const updatedStatsPassed = check(updatedStats, {
     'post-redirect stats returns 200': (r) => r.status === 200,
     'redirect increments click count': (r) => {
       try {
@@ -125,6 +155,9 @@ export default function () {
       }
     },
   });
+  if (!updatedStatsPassed) {
+    logRequestFailure('stats', updatedStats, 'expected HTTP 200 and clickCount to increase after redirect');
+  }
 
   sleep(1);
 }
