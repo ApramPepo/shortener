@@ -47,37 +47,34 @@ services:
     networks:
       - url-net
 
-# monitoring services. Enable after configuring Prometheus.yaml to
-# scrape the backend on port 8085.
-#
-#  prometheus:
-#    image: prom/prometheus:v2.54.0
-#    container_name: url-prometheus
-#    ports:
-#      - "9090:9090"
-#    volumes:
-#      - ./Prometheus.yaml:/etc/prometheus/prometheus.yml
-#    depends_on:
-#      - backend
-#    networks:
-#      - url-net
-#
-#  grafana:
-#    image: grafana/grafana:11.2.0
-#    container_name: url-grafana
-#    ports:
-#      - "3000:3000"
-#    environment:
-#      GF_SECURITY_ADMIN_USER: admin
-#      GF_SECURITY_ADMIN_PASSWORD: admin
-#      GF_USERS_ALLOW_SIGN_UP: "false"
-#    volumes:
-#      - grafana_data:/var/lib/grafana
-#      - ./grafana/provisioning:/etc/grafana/provisioning
-#    depends_on:
-#      - prometheus
-#    networks:
-#      - url-net
+  prometheus:
+    image: prom/prometheus:v2.54.0
+    container_name: url-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./Prometheus.yaml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - backend
+    networks:
+      - url-net
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: url-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - url-net
 #
 # Frontend Service is not available for Docker at the moment.
 #

@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 
 const baseUrl = (__ENV.BASE_URL || 'http://localhost:8085').replace(/\/+$/, '');
-const vus = Number(__ENV.VUS || 5);
+const vus = Number(__ENV.VUS || 100);
 const maxLoggedBodyLength = 300;
 
 function logRequestFailure(operation, response, reason) {
