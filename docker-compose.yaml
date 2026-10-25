@@ -92,6 +92,7 @@ services:
 
 volumes:
   mongodb_data:
+  grafana_data:
 
 networks:
   url-net:
