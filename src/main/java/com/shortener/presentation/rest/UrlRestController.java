@@ -1,4 +1,4 @@
-package com.shortener.interfaces.rest;
+package com.shortener.presentation.rest;
 
 import com.shortener.application.dto.CreateShortUrlCommand;
 import com.shortener.application.dto.ShortUrlResponse;

@@ -1,4 +1,4 @@
-package com.shortener.interfaces.exception;
+package com.shortener.presentation.exception;
 
 import com.shortener.domain.exception.DuplicateShortCodeException;
 import com.shortener.domain.exception.UrlNotFoundException;
